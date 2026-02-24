@@ -6,14 +6,22 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# termin_base library (tc_log + headers)
+# termin_base library (tc_log + trent + settings)
 add_library(termin_base STATIC
     src/tc_log.c
+    src/trent/trent.cpp
+    src/trent/trent_path.cpp
+    src/trent/string_ext.cpp
+    src/trent/json.cpp
+    src/trent/yaml.cpp
+    src/settings.cpp
 )
 
 target_include_directories(termin_base PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/tcbase/trent>
     $<INSTALL_INTERFACE:include>
+    $<INSTALL_INTERFACE:include/tcbase/trent>
 )
 
 target_compile_definitions(termin_base PRIVATE TCBASE_EXPORTS)

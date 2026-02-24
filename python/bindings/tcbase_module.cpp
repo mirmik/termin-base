@@ -2,6 +2,8 @@
 #include <nanobind/stl/string.h>
 #include <tcbase/input_enums.hpp>
 #include <tcbase/tc_log.hpp>
+#include <tcbase/settings.h>
+#include "trent_helpers.hpp"
 
 namespace nb = nanobind;
 
@@ -152,4 +154,36 @@ NB_MODULE(_tcbase_native, m) {
     // Logging submodule
     auto log_module = m.def_submodule("log", "Logging module");
     bind_log(log_module);
+
+    // Settings
+    nb::class_<tc::Settings>(m, "Settings", "Persistent JSON-based settings")
+        .def(nb::init<const std::string &>(), nb::arg("app_name"),
+             "Create settings for app (~/.config/{app_name}/settings.json)")
+        .def("__init__", [](tc::Settings *self, const std::string &path, bool explicit_path) {
+            new (self) tc::Settings(path, explicit_path);
+        }, nb::arg("path"), nb::arg("explicit_path"),
+           "Create settings with explicit file path")
+        .def("get", [](const tc::Settings &s, const std::string &key, nb::object default_val) -> nb::object {
+            const auto &val = s.get(key);
+            if (val.is_nil()) {
+                return default_val;
+            }
+            return termin::trent_to_py(val);
+        }, nb::arg("key"), nb::arg("default") = nb::none(),
+           "Get value by hierarchical key (e.g. 'a/b/c')")
+        .def("set", [](tc::Settings &s, const std::string &key, nb::object val) {
+            s.set(key, termin::py_to_trent(val));
+        }, nb::arg("key"), nb::arg("value"),
+           "Set value by hierarchical key")
+        .def("remove", &tc::Settings::remove, nb::arg("key"),
+             "Remove a key")
+        .def("contains", &tc::Settings::contains, nb::arg("key"),
+             "Check if key exists")
+        .def("begin_group", &tc::Settings::begin_group, nb::arg("name"),
+             "Push group prefix")
+        .def("end_group", &tc::Settings::end_group,
+             "Pop group prefix")
+        .def("save", &tc::Settings::save, "Save to disk")
+        .def("load", &tc::Settings::load, "Load from disk")
+        .def_prop_ro("path", &tc::Settings::path, "File path");
 }
