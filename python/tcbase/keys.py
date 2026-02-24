@@ -47,6 +47,11 @@ class Key(IntEnum):
     Y = 89
     Z = 90
 
+    # Punctuation (ASCII)
+    LBRACKET = 91   # [
+    BACKSLASH = 92  # \
+    RBRACKET = 93   # ]
+
     # Special keys (GLFW-compatible values)
     ESCAPE = 256
     BACKSPACE = 259
