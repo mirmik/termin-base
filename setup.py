@@ -96,7 +96,9 @@ setup(
         "tcbase": [
             "include/**/*.h",
             "include/**/*.hpp",
-            "lib/*.a",
+            "lib/*.so*",
+            "lib/*.dll",
+            "lib/*.lib",
             "lib/cmake/termin_base/*.cmake",
         ],
     },

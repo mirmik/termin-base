@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # termin_base library (tc_log + trent + settings)
-add_library(termin_base STATIC
+add_library(termin_base SHARED
     src/tc_log.c
     src/trent/trent.cpp
     src/trent/trent_path.cpp

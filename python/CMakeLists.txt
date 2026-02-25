@@ -12,3 +12,8 @@ nanobind_add_module(_tcbase_native
 )
 
 target_link_libraries(_tcbase_native PRIVATE termin_base)
+
+set_target_properties(_tcbase_native PROPERTIES
+    BUILD_WITH_INSTALL_RPATH TRUE
+    INSTALL_RPATH "$ORIGIN/lib"
+)
