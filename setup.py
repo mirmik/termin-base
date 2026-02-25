@@ -10,16 +10,17 @@ import os
 
 
 def _copytree(src, dst):
-    """Copy directory tree, preserving symlinks."""
+    """Copy directory tree. On Windows, dereferences symlinks."""
     if dst.exists():
         shutil.rmtree(dst)
-    shutil.copytree(src, dst, symlinks=True)
+    follow = sys.platform == "win32"
+    shutil.copytree(src, dst, symlinks=not follow)
 
 
 class CMakeBuildExt(build_ext):
     """
     Build nanobind extension via CMake.
-    CMake builds termin_base static library + _tcbase_native Python module.
+    CMake builds termin_base shared library + _tcbase_native Python module.
     Also installs C++ artifacts (headers, lib, cmake configs) into the package.
     """
 
@@ -51,33 +52,51 @@ class CMakeBuildExt(build_ext):
             cwd=build_temp,
         )
 
-        # Find the built .so
-        built_files = list((build_temp / "python").glob("_tcbase_native.*"))
+        # Find the built native module (.so on Linux, .pyd on Windows)
+        patterns = ["_tcbase_native.*.so", "_tcbase_native.*.pyd", "_tcbase_native.pyd"]
+        built_files = []
+        for pat in patterns:
+            built_files.extend((build_temp / "python").glob(pat))
         if not built_files:
             raise RuntimeError("CMake build did not produce _tcbase_native module")
 
-        built_so = built_files[0]
+        built_module = built_files[0]
 
         # Copy to where setuptools expects it (makes install/bdist_wheel work)
         ext_path = Path(self.get_ext_fullpath(ext.name))
         ext_path.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(built_so, ext_path)
+        shutil.copy2(built_module, ext_path)
 
-        # Copy C++ artifacts (headers, lib, cmake configs) next to the .so
+        # Copy C++ artifacts (headers, lib, cmake configs) next to the module
         ext_pkg_dir = ext_path.parent
-        if (staging_dir / "include").exists():
-            _copytree(staging_dir / "include", ext_pkg_dir / "include")
-        if (staging_dir / "lib").exists():
-            _copytree(staging_dir / "lib", ext_pkg_dir / "lib")
+        _install_cpp_artifacts(staging_dir, ext_pkg_dir)
+
+        # On Windows, copy DLLs next to the .pyd (no RPATH on Windows)
+        if sys.platform == "win32":
+            _copy_dlls(staging_dir / "lib", ext_pkg_dir)
 
         # Also copy to source tree for editable/development use
         pkg_dir = source_dir / "python" / "tcbase"
         pkg_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(built_so, pkg_dir / built_so.name)
-        if (staging_dir / "include").exists():
-            _copytree(staging_dir / "include", pkg_dir / "include")
-        if (staging_dir / "lib").exists():
-            _copytree(staging_dir / "lib", pkg_dir / "lib")
+        shutil.copy2(built_module, pkg_dir / built_module.name)
+        _install_cpp_artifacts(staging_dir, pkg_dir)
+
+        if sys.platform == "win32":
+            _copy_dlls(staging_dir / "lib", pkg_dir)
+
+
+def _install_cpp_artifacts(staging_dir, pkg_dir):
+    """Copy include/ and lib/ from cmake install staging to package dir."""
+    if (staging_dir / "include").exists():
+        _copytree(staging_dir / "include", pkg_dir / "include")
+    if (staging_dir / "lib").exists():
+        _copytree(staging_dir / "lib", pkg_dir / "lib")
+
+
+def _copy_dlls(lib_dir, dst_dir):
+    """Copy DLL files to target directory (Windows: DLLs must be next to .pyd)."""
+    for dll in lib_dir.glob("*.dll"):
+        shutil.copy2(dll, dst_dir / dll.name)
 
 
 directory = os.path.dirname(os.path.realpath(__file__))
@@ -96,9 +115,13 @@ setup(
         "tcbase": [
             "include/**/*.h",
             "include/**/*.hpp",
+            # Linux
             "lib/*.so*",
+            # Windows
+            "*.dll",
             "lib/*.dll",
             "lib/*.lib",
+            # CMake configs
             "lib/cmake/termin_base/*.cmake",
         ],
     },

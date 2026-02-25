@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # termin_base library (tc_log + trent + settings)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 add_library(termin_base SHARED
     src/tc_log.c
     src/trent/trent.cpp
@@ -40,7 +41,7 @@ install(TARGETS termin_base
     EXPORT termin_baseTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 install(DIRECTORY include/tcbase
