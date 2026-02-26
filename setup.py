@@ -2,11 +2,20 @@
 
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
+from setuptools.command.build import build as _build
 from pathlib import Path
 import shutil
 import subprocess
 import sys
 import os
+
+
+def _get_sdk_prefix():
+    """On Windows, return path to shared termin-sdk directory."""
+    if sys.platform == "win32":
+        base = os.environ.get("LOCALAPPDATA", os.path.expanduser("~/AppData/Local"))
+        return Path(base) / "termin-sdk"
+    return None
 
 
 def _copytree(src, dst):
@@ -15,6 +24,16 @@ def _copytree(src, dst):
         shutil.rmtree(dst)
     follow = sys.platform == "win32"
     shutil.copytree(src, dst, symlinks=not follow)
+
+
+class CMakeBuild(_build):
+    """Run build_ext before build_py so that DLLs and artifacts copied to
+    source tree during compilation are picked up by package_data."""
+
+    def run(self):
+        self.run_command("build_ext")
+        # Now build_py will find DLLs/libs already in source tree
+        _build.run(self)
 
 
 class CMakeBuildExt(build_ext):
@@ -29,7 +48,7 @@ class CMakeBuildExt(build_ext):
         build_temp = Path(self.build_temp)
         build_temp.mkdir(parents=True, exist_ok=True)
 
-        staging_dir = build_temp / "install"
+        staging_dir = (build_temp / "install").resolve()
         staging_dir.mkdir(parents=True, exist_ok=True)
 
         cfg = "Debug" if self.debug else "Release"
@@ -77,7 +96,7 @@ class CMakeBuildExt(build_ext):
         if sys.platform == "win32":
             _copy_dlls(staging_dir / "lib", ext_pkg_dir)
 
-        # Also copy to source tree for editable/development use
+        # Also copy to source tree so build_py picks them up via package_data
         pkg_dir = source_dir / "python" / "tcbase"
         pkg_dir.mkdir(parents=True, exist_ok=True)
         shutil.copy2(built_module, pkg_dir / built_module.name)
@@ -85,6 +104,15 @@ class CMakeBuildExt(build_ext):
 
         if sys.platform == "win32":
             _copy_dlls(staging_dir / "lib", pkg_dir)
+
+        # On Windows, also install C++ artifacts into shared SDK directory
+        sdk = _get_sdk_prefix()
+        if sdk:
+            sdk.mkdir(parents=True, exist_ok=True)
+            subprocess.check_call(
+                ["cmake", "--install", ".", "--config", cfg, "--prefix", str(sdk)],
+                cwd=build_temp,
+            )
 
 
 def _install_cpp_artifacts(staging_dir, pkg_dir):
@@ -130,6 +158,6 @@ setup(
     ext_modules=[
         Extension("tcbase._tcbase_native", sources=[]),
     ],
-    cmdclass={"build_ext": CMakeBuildExt},
+    cmdclass={"build": CMakeBuild, "build_ext": CMakeBuildExt},
     zip_safe=False,
 )
