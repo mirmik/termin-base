@@ -5,13 +5,30 @@
 #include <cstdlib>
 #include <sys/stat.h>
 
+#ifdef _WIN32
+#include <direct.h>
+#endif
+
 namespace
 {
+    bool is_sep(char c)
+    {
+        return c == '/'
+#ifdef _WIN32
+            || c == '\\'
+#endif
+            ;
+    }
+
     std::string expand_home(const std::string &path)
     {
         if (!path.empty() && path[0] == '~')
         {
             const char *home = std::getenv("HOME");
+#ifdef _WIN32
+            if (!home)
+                home = std::getenv("USERPROFILE");
+#endif
             if (home)
                 return std::string(home) + path.substr(1);
         }
@@ -24,9 +41,13 @@ namespace
         for (size_t i = 0; i < dir.size(); ++i)
         {
             accum += dir[i];
-            if (dir[i] == '/' || i == dir.size() - 1)
+            if (is_sep(dir[i]) || i == dir.size() - 1)
             {
+#ifdef _WIN32
+                _mkdir(accum.c_str());
+#else
                 mkdir(accum.c_str(), 0755);
+#endif
             }
         }
     }
@@ -34,6 +55,11 @@ namespace
     std::string dir_of(const std::string &path)
     {
         auto pos = path.rfind('/');
+#ifdef _WIN32
+        auto pos2 = path.rfind('\\');
+        if (pos == std::string::npos || (pos2 != std::string::npos && pos2 > pos))
+            pos = pos2;
+#endif
         if (pos == std::string::npos)
             return ".";
         return path.substr(0, pos);

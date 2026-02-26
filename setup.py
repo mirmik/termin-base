@@ -53,10 +53,12 @@ class CMakeBuildExt(build_ext):
         )
 
         # Find the built native module (.so on Linux, .pyd on Windows)
+        # On MSVC, outputs land in a Release/ or Debug/ subdirectory
         patterns = ["_tcbase_native.*.so", "_tcbase_native.*.pyd", "_tcbase_native.pyd"]
         built_files = []
         for pat in patterns:
             built_files.extend((build_temp / "python").glob(pat))
+            built_files.extend((build_temp / "python" / cfg).glob(pat))
         if not built_files:
             raise RuntimeError("CMake build did not produce _tcbase_native module")
 
