@@ -1,47 +1,189 @@
-# Build
-build/
-install/
-cmake-build-*/
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 
-# Compiled objects
-*.o
-*.obj
-*.a
+# C extensions
 *.so
-*.so.*
-*.dylib
-*.dll
-*.lib
-*.exe
+*.pyd
 
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-.cache/
-compile_commands.json
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.idea
 
-# CMake
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+!__main__.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+docs/doxygen_xml/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# celery beat schedule file
+celerybeat-schedule
+
+# SageMath parsed files
+*.sage.py
+
+# dotenv
+.env
+
+# virtualenv
+.venv
+venv/
+ENV/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+
+
+*.dump
+*.zen
+.evalcache
+.evalfile
+test/screens/*.png
+
+mangen/images/generic/*.png
+
+
+doxygen/html
+doxygen/latex
+
+# C++ build directory
+cpp/build/
+cpp/build*/
+cpp/**/CMakeCache.txt
+cpp/**/CMakeFiles/
+cpp/**/cmake_install.cmake
+cpp/**/Makefile
+cpp/**/CTestTestfile.cmake
+
+# CMake artifacts
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 Makefile
 *.cmake
-!cmake/*.cmake
-!cmake/*.cmake.in
 !CMakeLists.txt
 
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
-*.egg
-dist/
-*.whl
-.eggs/
+*.vcxproj
+*.vcxproj.filters
+*.sln
+*.tlog
+*.ilk
+*.recipe
+*.idb
+*.pdb
+*.ipch
+*.exp
+*.lib
+cpp/**/*.obj
+cpp/**/*.exe
+cpp/**/*.dll
+cpp/**/*.out
 
-# OS
-.DS_Store
-Thumbs.db
+*.dll
+
+entity_lib.dll
+entity_lib.lib
+
+.claude/settings.local.json
+
+tmpclaude*
+build_test*
+
+# C# build artifacts
+csharp/**/bin/
+csharp/**/obj/
+csharp/Termin.Native/runtimes/
+
+# SWIG generated files
+csharp/termin_wrap.cxx
+csharp/termin_wrap.h
+csharp/Termin.Native/Generated/
+
+# CMake C# build directory
+build_csharp/
+
+# Allow C# solution file
+!csharp/Termin.sln
+
+build_cpp/
+build_app/
+build_core/
+build_win/
+
+build_standalone/
+install/
+install_win/
+
+
+!cpp/python_bindings.cmake
