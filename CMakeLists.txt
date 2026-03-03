@@ -5,11 +5,13 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+option(TERMIN_BASE_BUILD_TESTS "Build termin-base tests" ON)
 
 # termin_base library (tc_log + trent + settings)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 add_library(termin_base SHARED
     src/tc_log.c
+    src/tc_value.c
     src/trent/trent.cpp
     src/trent/trent_path.cpp
     src/trent/string_ext.cpp
@@ -32,6 +34,18 @@ option(TCBASE_BUILD_PYTHON "Build Python bindings" OFF)
 
 if(TCBASE_BUILD_PYTHON)
     add_subdirectory(python)
+endif()
+
+if(TERMIN_BASE_BUILD_TESTS)
+    enable_testing()
+
+    add_executable(termin_base_value_test tests/test_tc_value.c)
+    target_link_libraries(termin_base_value_test PRIVATE termin_base)
+    if(UNIX AND NOT APPLE)
+        target_link_libraries(termin_base_value_test PRIVATE m)
+    endif()
+
+    add_test(NAME termin_base_value_test COMMAND termin_base_value_test)
 endif()
 
 # Install
