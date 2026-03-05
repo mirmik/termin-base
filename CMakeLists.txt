@@ -12,6 +12,9 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 add_library(termin_base SHARED
     src/tc_log.c
     src/tc_value.c
+    src/tc_pool.c
+    src/tc_resource_map.c
+    src/tgfx_intern_string.c
     src/trent/trent.cpp
     src/trent/trent_path.cpp
     src/trent/string_ext.cpp
