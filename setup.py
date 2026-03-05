@@ -43,7 +43,18 @@ class CMakeBuildExt(build_ext):
     Also installs C++ artifacts (headers, lib, cmake configs) into the package.
     """
 
-    def build_extension(self, ext):
+    def _find_built_module(self, build_temp, cfg, module_name):
+        patterns = [f"{module_name}.*.so", f"{module_name}.*.pyd", f"{module_name}.pyd"]
+        built_files = []
+        for pat in patterns:
+            built_files.extend((build_temp / "python").glob(pat))
+            built_files.extend((build_temp / "python" / cfg).glob(pat))
+        return built_files[0] if built_files else None
+
+    def _ensure_cmake_build(self):
+        if getattr(self, "_cmake_ready", False):
+            return
+
         source_dir = Path(directory)
         build_temp = Path(self.build_temp)
         build_temp.mkdir(parents=True, exist_ok=True)
@@ -71,17 +82,29 @@ class CMakeBuildExt(build_ext):
             cwd=build_temp,
         )
 
-        # Find the built native module (.so on Linux, .pyd on Windows)
-        # On MSVC, outputs land in a Release/ or Debug/ subdirectory
-        patterns = ["_tcbase_native.*.so", "_tcbase_native.*.pyd", "_tcbase_native.pyd"]
-        built_files = []
-        for pat in patterns:
-            built_files.extend((build_temp / "python").glob(pat))
-            built_files.extend((build_temp / "python" / cfg).glob(pat))
-        if not built_files:
-            raise RuntimeError("CMake build did not produce _tcbase_native module")
+        modules = {}
+        for name in ["_tcbase_native", "_geom_native"]:
+            built = self._find_built_module(build_temp, cfg, name)
+            if not built:
+                raise RuntimeError(f"CMake build did not produce {name} module")
+            modules[name] = built
 
-        built_module = built_files[0]
+        self._cmake_source_dir = source_dir
+        self._cmake_build_temp = build_temp
+        self._cmake_staging_dir = staging_dir
+        self._cmake_cfg = cfg
+        self._cmake_modules = modules
+        self._cmake_ready = True
+
+    def build_extension(self, ext):
+        self._ensure_cmake_build()
+
+        source_dir = self._cmake_source_dir
+        staging_dir = self._cmake_staging_dir
+        module_name = ext.name.rsplit(".", 1)[-1]
+        built_module = self._cmake_modules.get(module_name)
+        if not built_module:
+            raise RuntimeError(f"Unknown module requested by setuptools: {module_name}")
 
         # Copy to where setuptools expects it (makes install/bdist_wheel work)
         ext_path = Path(self.get_ext_fullpath(ext.name))
@@ -110,8 +133,8 @@ class CMakeBuildExt(build_ext):
         if sdk:
             sdk.mkdir(parents=True, exist_ok=True)
             subprocess.check_call(
-                ["cmake", "--install", ".", "--config", cfg, "--prefix", str(sdk)],
-                cwd=build_temp,
+                ["cmake", "--install", ".", "--config", self._cmake_cfg, "--prefix", str(sdk)],
+                cwd=self._cmake_build_temp,
             )
 
 
@@ -157,6 +180,7 @@ setup(
     },
     ext_modules=[
         Extension("tcbase._tcbase_native", sources=[]),
+        Extension("tcbase._geom_native", sources=[]),
     ],
     cmdclass={"build": CMakeBuild, "build_ext": CMakeBuildExt},
     zip_safe=False,
