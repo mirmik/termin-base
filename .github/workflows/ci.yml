@@ -2,9 +2,7 @@ name: CI
 
 on:
   push:
-    branches:
-      - master
-      - main
+    branches: [master, main]
   pull_request:
 
 env:
@@ -15,31 +13,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Install Python test dependencies
-        run: python -m pip install --upgrade pip setuptools wheel nanobind pytest
+      - name: Install Python dependencies
+        run: pip install --upgrade pip setuptools wheel nanobind pytest
 
-      - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/termin -DTERMIN_BASE_BUILD_TESTS=ON -DTCBASE_BUILD_PYTHON=OFF
-
-      - name: Build
-        run: cmake --build build --parallel
-
-      - name: Install to /opt/termin
-        run: sudo cmake --install build
+      - name: Build and install C library
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/opt/termin \
+            -DTERMIN_BASE_BUILD_TESTS=ON \
+            -DTCBASE_BUILD_PYTHON=OFF
+          cmake --build build --parallel
+          sudo cmake --install build
 
       - name: Run C/C++ tests
         run: ctest --test-dir build --output-on-failure
 
-      - name: Install tcbase package
-        run: python -m pip install --no-build-isolation .
+      - name: Build and install pip package
+        run: |
+          sudo mkdir -p /opt/termin/wheels
+          pip wheel --no-build-isolation -w /opt/termin/wheels .
+          pip install /opt/termin/wheels/tcbase-*.whl
 
       - name: Run Python tests
-        run: python -m pytest -q tests/python
+        run: pytest -q tests/python
+
+      - name: Publish SDK artifact
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tar czf /tmp/sdk-base.tar.gz -C / opt/termin
+          gh release create sdk-latest --title "SDK (latest)" --notes "Auto-built from $(git rev-parse --short HEAD)" --prerelease 2>/dev/null || true
+          gh release upload sdk-latest /tmp/sdk-base.tar.gz --clobber
