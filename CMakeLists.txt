@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 option(TERMIN_BASE_BUILD_TESTS "Build termin-base tests" ON)
 
-# termin_base library (tc_log + trent + settings)
+# termin_base library (tc_log + trent + settings + tc_value_trent)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 add_library(termin_base SHARED
     src/tc_log.c
@@ -18,13 +18,16 @@ add_library(termin_base SHARED
     src/trent/json.cpp
     src/trent/yaml.cpp
     src/settings.cpp
+    src/tc_value_trent.cpp
 )
 
 target_include_directories(termin_base PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/tcbase/trent>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/tcbase>
     $<INSTALL_INTERFACE:include>
     $<INSTALL_INTERFACE:include/tcbase/trent>
+    $<INSTALL_INTERFACE:include/tcbase>
 )
 
 target_compile_definitions(termin_base PRIVATE TCBASE_EXPORTS)
@@ -59,6 +62,10 @@ install(TARGETS termin_base
 )
 
 install(DIRECTORY include/tcbase
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(DIRECTORY include/termin
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
