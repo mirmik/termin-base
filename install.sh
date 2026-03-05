@@ -2,13 +2,13 @@
 set -e
 
 BUILD_TYPE="Release"
-PREFIX="/usr/local"
+PREFIX="/opt/termin"
 
 for arg in "$@"; do
     case "$arg" in
         --debug) BUILD_TYPE="Debug" ;;
         --prefix=*) PREFIX="${arg#*=}" ;;
-        *) echo "Usage: $0 [--debug] [--prefix=/usr/local]"; exit 1 ;;
+        *) echo "Usage: $0 [--debug] [--prefix=/opt/termin]"; exit 1 ;;
     esac
 done
 
@@ -23,20 +23,6 @@ cmake -S . -B "${BUILD_DIR}" \
 cmake --build "${BUILD_DIR}" -j$(nproc)
 
 sudo cmake --install "${BUILD_DIR}"
-
-sudo mkdir -p /opt/termin/lib
-shopt -s nullglob
-for lib in "${PREFIX}"/lib*/libtermin_base.so* "${PREFIX}"/lib/*/libtermin_base.so*; do
-    sudo cp -a "$lib" /opt/termin/lib/
-done
-shopt -u nullglob
-
-# Also copy from build dir (Debug/Release) if present
-shopt -s nullglob
-for lib in "${BUILD_DIR}"/libtermin_base.so* "${BUILD_DIR}"/lib/libtermin_base.so*; do
-    sudo cp -a "$lib" /opt/termin/lib/
-done
-shopt -u nullglob
 
 echo ""
 echo "Installed termin_base (${BUILD_TYPE}) to ${PREFIX}"
