@@ -30,7 +30,8 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=/opt/termin \
             -DTERMIN_BASE_BUILD_TESTS=ON \
-            -DTCBASE_BUILD_PYTHON=OFF
+            -DTERMIN_BUILD_PYTHON=ON \
+            -DPython_EXECUTABLE=$(which python3)
           cmake --build build --parallel
           sudo cmake --install build
 
