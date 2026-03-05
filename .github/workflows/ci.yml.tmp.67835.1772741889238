@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+env:
+  LD_LIBRARY_PATH: /opt/termin/lib
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Python dependencies
+        run: pip install --upgrade pip setuptools wheel nanobind pytest
+
+      - name: Build and install C library
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/opt/termin \
+            -DTERMIN_BASE_BUILD_TESTS=ON \
+            -DTERMIN_BUILD_PYTHON=ON \
+            -DPython_EXECUTABLE=$(which python3)
+          cmake --build build --parallel
+          sudo cmake --install build
+
+      - name: Run C/C++ tests
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Build and install pip package
+        run: |
+          sudo mkdir -p /opt/termin/wheels
+          pip wheel --no-build-isolation --no-deps -w /opt/termin/wheels .
+          pip install /opt/termin/wheels/tcbase-*.whl
+
+      - name: Run Python tests
+        run: pytest -q tests/python
+
+      - name: Publish SDK artifact
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tar czf /tmp/sdk-base.tar.gz -C / opt/termin
+          gh release create sdk-latest --title "SDK (latest)" --notes "Auto-built from $(git rev-parse --short HEAD)" --prerelease 2>/dev/null || true
+          gh release upload sdk-latest /tmp/sdk-base.tar.gz --clobber
