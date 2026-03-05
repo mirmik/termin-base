@@ -40,7 +40,7 @@ jobs:
       - name: Build and install pip package
         run: |
           sudo mkdir -p /opt/termin/wheels
-          pip wheel --no-build-isolation -w /opt/termin/wheels .
+          pip wheel --no-build-isolation --no-deps -w /opt/termin/wheels .
           pip install /opt/termin/wheels/tcbase-*.whl
 
       - name: Run Python tests
