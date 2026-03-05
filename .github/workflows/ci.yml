@@ -24,16 +24,19 @@ jobs:
         run: python -m pip install --upgrade pip setuptools wheel nanobind pytest
 
       - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DTERMIN_BASE_BUILD_TESTS=ON -DTCBASE_BUILD_PYTHON=OFF
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/termin -DTERMIN_BASE_BUILD_TESTS=ON -DTCBASE_BUILD_PYTHON=OFF
 
       - name: Build
         run: cmake --build build --parallel
+
+      - name: Install to /opt/termin
+        run: sudo cmake --install build
 
       - name: Run C/C++ tests
         run: ctest --test-dir build --output-on-failure
 
       - name: Install tcbase package
-        run: python -m pip install -e .
+        run: python -m pip install --no-build-isolation .
 
       - name: Run Python tests
         run: python -m pytest -q tests/python
