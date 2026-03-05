@@ -52,6 +52,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          tar czf /tmp/sdk-base.tar.gz -C / opt/termin
+          DESTDIR=/tmp/staging cmake --install build
+          mkdir -p /tmp/staging/opt/termin/wheels
+          cp /opt/termin/wheels/tcbase-*.whl /tmp/staging/opt/termin/wheels/
+          tar czf /tmp/sdk-base.tar.gz -C /tmp/staging opt/termin
           gh release create sdk-latest --title "SDK (latest)" --notes "Auto-built from $(git rev-parse --short HEAD)" --prerelease 2>/dev/null || true
           gh release upload sdk-latest /tmp/sdk-base.tar.gz --clobber
