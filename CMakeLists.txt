@@ -36,9 +36,9 @@ target_include_directories(termin_base PUBLIC
 target_compile_definitions(termin_base PRIVATE TCBASE_EXPORTS)
 
 # Python bindings
-option(TCBASE_BUILD_PYTHON "Build Python bindings" OFF)
+option(TERMIN_BUILD_PYTHON "Build Python bindings" OFF)
 
-if(TCBASE_BUILD_PYTHON)
+if(TERMIN_BUILD_PYTHON)
     add_subdirectory(python)
 endif()
 
