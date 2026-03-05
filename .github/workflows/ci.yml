@@ -52,7 +52,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          DESTDIR=/tmp/staging cmake --install build
+          sudo DESTDIR=/tmp/staging cmake --install build
           mkdir -p /tmp/staging/opt/termin/wheels
           cp /opt/termin/wheels/tcbase-*.whl /tmp/staging/opt/termin/wheels/
           tar czf /tmp/sdk-base.tar.gz -C /tmp/staging opt/termin
