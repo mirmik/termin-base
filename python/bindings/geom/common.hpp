@@ -63,7 +63,6 @@ void bind_mat44(nb::module_& m);
 void bind_pose3(nb::module_& m);
 void bind_general_pose3(nb::module_& m);
 void bind_screw3(nb::module_& m);
-void bind_transform(nb::module_& m);
 void bind_aabb(nb::module_& m);
 
 } // namespace termin

@@ -13,7 +13,6 @@ NB_MODULE(_geom_native, m) {
     bind_pose3(m);
     bind_general_pose3(m);
     bind_screw3(m);
-    bind_transform(m);
     bind_aabb(m);
 }
 

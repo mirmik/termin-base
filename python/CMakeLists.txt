@@ -30,10 +30,10 @@ target_link_libraries(_geom_native PRIVATE termin_base)
 if(NOT WIN32)
     set_target_properties(_tcbase_native PROPERTIES
         BUILD_WITH_INSTALL_RPATH TRUE
-        INSTALL_RPATH "$ORIGIN/lib"
+        INSTALL_RPATH "/opt/termin/lib"
     )
     set_target_properties(_geom_native PROPERTIES
         BUILD_WITH_INSTALL_RPATH TRUE
-        INSTALL_RPATH "$ORIGIN/lib"
+        INSTALL_RPATH "/opt/termin/lib"
     )
 endif()
