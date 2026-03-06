@@ -22,7 +22,14 @@ jobs:
           python-version: "3.10"
 
       - name: Install Python dependencies
-        run: pip install --upgrade pip setuptools wheel nanobind pytest
+        run: pip install --upgrade pip setuptools wheel pytest
+
+      - name: Download nanobind SDK
+        env:
+          GH_TOKEN: ${{ secrets.CLONETOKEN }}
+        run: |
+          gh release download sdk-latest -R ${{ github.repository_owner }}/termin-nanobind-sdk -p sdk-nanobind.tar.gz -D /tmp
+          sudo tar xzf /tmp/sdk-nanobind.tar.gz -C /
 
       - name: Build and install C library
         run: |

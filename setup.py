@@ -10,6 +10,13 @@ import sys
 import os
 
 
+def _split_prefix_path(raw):
+    if not raw:
+        return []
+    normalized = raw.replace(";", os.pathsep)
+    return [p for p in normalized.split(os.pathsep) if p]
+
+
 class CMakeBuild(_build):
     def run(self):
         self.run_command("build_ext")
@@ -45,6 +52,10 @@ class CMakeBuildExt(build_ext):
             f"-DCMAKE_INSTALL_PREFIX={staging_dir}",
             f"-DCMAKE_INSTALL_LIBDIR=lib",
         ]
+
+        prefix_paths = _split_prefix_path(os.environ.get("CMAKE_PREFIX_PATH"))
+        if prefix_paths:
+            cmake_args.append(f"-DCMAKE_PREFIX_PATH={';'.join(prefix_paths)}")
 
         subprocess.check_call(["cmake", *cmake_args], cwd=build_temp)
         subprocess.check_call(
