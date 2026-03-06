@@ -46,6 +46,8 @@ jobs:
         run: ctest --test-dir build --output-on-failure
 
       - name: Build and install pip package
+        env:
+          CMAKE_PREFIX_PATH: /opt/termin
         run: |
           sudo mkdir -p /opt/termin/wheels
           pip wheel --no-build-isolation --no-deps -w /opt/termin/wheels .
