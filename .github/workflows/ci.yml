@@ -49,9 +49,11 @@ jobs:
         env:
           CMAKE_PREFIX_PATH: /opt/termin
         run: |
+          mkdir -p dist
+          pip wheel --no-build-isolation --no-deps -w dist .
           sudo mkdir -p /opt/termin/wheels
-          pip wheel --no-build-isolation --no-deps -w /opt/termin/wheels .
-          pip install /opt/termin/wheels/tcbase-*.whl
+          sudo cp dist/tcbase-*.whl /opt/termin/wheels/
+          pip install dist/tcbase-*.whl
 
       - name: Run Python tests
         run: pytest -q tests/python
